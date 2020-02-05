@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Mines</title>
+
+  <style>
+    body{
+      background-color: black;
+    }
+    td{
+      width: 40px;
+      height: 40px;
+      background-color: grey;
+      height:width;
+      text-align: center;
+    }
+    td:hover{
+      cursor: pointer;
+      background-color: rgb(175, 175, 175);
+    }
+  </style>
+</head>
+<body>
+  <table id="platform"></table>
+
+  <script>
+    var width=9, height=9;
+    var level=0.2;
+    var debug=false;
+
+    function init_game(width_x,height_y,bombs){
+      // create bomb map
+      let bombMap=new Array(height_y);
+      for(let i=0;i<height_y;i++) {
+        bombMap[i]=new Array(width_x);
+        for(let j=0;j<width_x;j++) bombMap[i][j]=0;
+      }
+      // set bombs randomly
+      for(let b=bombs;b>0;){
+        let x=Math.floor(Math.random()*height_y);
+        let y=Math.floor(Math.random()*width_x);
+        if(bombMap[x][y]==0){
+          bombMap[x][y]=-1;
+          b--;
+        }
+        else continue;
+      }
+      // calculate tip number
+      for(let y=0;y<height_y;y++){
+        for(let x=0;x<width_x;x++){
+          let flag=0;
+          if(bombMap[y][x]!=-1){
+            if((x==0)&&(y==0)){
+              if(bombMap[y+1][x]==-1) flag++;
+              if(bombMap[y][x+1]==-1) flag++;
+              if(bombMap[y+1][x+1]==-1) flag++;
+              bombMap[y][x]=flag;
+            }
+            else if((x==width_x-1)&&(y==0)){
+              if(bombMap[y+1][x]==-1) flag++;
+              if(bombMap[y][x-1]==-1) flag++;
+              if(bombMap[y+1][x-1]==-1) flag++;
+              bombMap[y][x]=flag;
+            }
+            else if((x==0)&&(y==height_y-1)){
+              if(bombMap[y-1][x]==-1) flag++;
+              if(bombMap[y][x+1]==-1) flag++;
+              if(bombMap[y-1][x+1]==-1) flag++;
+              bombMap[y][x]=flag;
+            }
+            else if((x==width_x-1)&&(y==height_y-1)){
+              if(bombMap[y-1][x-1]==-1) flag++;
+              if(bombMap[y][x-1]==-1) flag++;
+              if(bombMap[y-1][x]==-1) flag++;
+              bombMap[y][x]=flag;
+            }
+            else if((x==0)&&(y>0)&&(y<height_y-1)){
+              if(bombMap[y-1][x]==-1) flag++;
+              if(bombMap[y-1][x+1]==-1) flag++;
+              if(bombMap[y][x+1]==-1) flag++;
+              if(bombMap[y+1][x]==-1) flag++;
+              if(bombMap[y+1][x+1]==-1) flag++;
+              bombMap[y][x]=flag;
+            }
+            else if((x==width_x-1)&&(y>0)&&(y<height_y-1)){
+              if(bombMap[y-1][x]==-1) flag++;
+              if(bombMap[y-1][x-1]==-1) flag++;
+              if(bombMap[y][x-1]==-1) flag++;
+              if(bombMap[y+1][x]==-1) flag++;
+              if(bombMap[y+1][x-1]==-1) flag++;
+              bombMap[y][x]=flag;
+            }
+            else if((x>0)&&(x<width_x-1)&&(y==0)){
+              if(bombMap[y][x-1]==-1) flag++;
+              if(bombMap[y][x+1]==-1) flag++;
+              if(bombMap[y+1][x-1]==-1) flag++;
+              if(bombMap[y+1][x]==-1) flag++;
+              if(bombMap[y+1][x+1]==-1) flag++;
+              bombMap[y][x]=flag;
+            }
+            else if((x<width_x-1)&&(x>0)&&(y==height_y-1)){
+              if(bombMap[y][x-1]==-1) flag++;
+              if(bombMap[y][x+1]==-1) flag++;
+              if(bombMap[y-1][x-1]==-1) flag++;
+              if(bombMap[y-1][x]==-1) flag++;
+              if(bombMap[y-1][x+1]==-1) flag++;
+              bombMap[y][x]=flag;
+            }
+            else{
+              if(bombMap[y-1][x-1]==-1) flag++;
+              if(bombMap[y-1][x]==-1) flag++;
+              if(bombMap[y-1][x+1]==-1) flag++;
+              if(bombMap[y][x-1]==-1) flag++;
+              if(bombMap[y][x+1]==-1) flag++;
+              if(bombMap[y+1][x-1]==-1) flag++;
+              if(bombMap[y+1][x]==-1) flag++;
+              if(bombMap[y+1][x+1]==-1) flag++;
+              bombMap[y][x]=flag;
+            } 
+          }
+        }
+      }
+      if(debug) console.log(bombMap);
+      return(bombMap);
+    }
+
+    function draw_platform(maps){
+      let temp='';
+      // drawing blocks
+      for(let y=0;y<maps.length;y++){
+        temp+=`<tr>`;
+          for(let x=0;x<maps[y].length;x++){
+            temp+=`<td id="pf_${x}${y}" onClick="check(${x},${y})">${ (debug==true)? maps[y][x]:'' }</td>`;
+          }
+        temp+=`</tr>`;
+      }
+      document.getElementById('platform').innerHTML=temp;
+    }
+
+    let result=init_game(width,height,(width*height*level));
+    draw_platform(result);
+
+    function check(x,y){
+      window.console.log(x,y);
+      if(result[y][x]==-1) {
+        document.getElementById(`pf_${x}${y}`).innerHTML=`bomb`;
+        window.console.log(`game over`);
+      }
+      else{
+        if(result[y][x]==0) {
+          document.getElementById(`pf_${x}${y}`).innerHTML=`safe`;
+          if((x==0)&&(y==0)){
+            if(document.getElementById(`pf_${x+1}${y}`).innerHTML==``) check(x+1,y);
+            if(document.getElementById(`pf_${x}${y+1}`).innerHTML==``) check(x,y+1);
+            if(document.getElementById(`pf_${x+1}${y+1}`).innerHTML==``) check(x+1,y+1);
+          }
+          else if((x==width-1)&&(y==0)){
+            if(document.getElementById(`pf_${x-1}${y}`).innerHTML==``) check(x-1,y);
+            if(document.getElementById(`pf_${x}${y+1}`).innerHTML==``) check(x,y+1);
+            if(document.getElementById(`pf_${x-1}${y+1}`).innerHTML==``) check(x-1,y+1);
+          }
+          else if((x==0)&&(y==height-1)){
+            if(document.getElementById(`pf_${x+1}${y}`).innerHTML==``) check(x+1,y);
+            if(document.getElementById(`pf_${x}${y-1}`).innerHTML==``) check(x,y-1);
+            if(document.getElementById(`pf_${x+1}${y-1}`).innerHTML==``) check(x+1,y-1);
+          }
+          else if((x==width-1)&&(y==height-1)){
+            if(document.getElementById(`pf_${x-1}${y}`).innerHTML==``) check(x-1,y);
+            if(document.getElementById(`pf_${x}${y-1}`).innerHTML==``) check(x,y-1);
+            if(document.getElementById(`pf_${x-1}${y-1}`).innerHTML==``) check(x-1,y-1);
+          }
+          else if((x==0)&&(y>0)&&(y<height-1)){
+            if(document.getElementById(`pf_${x}${y-1}`).innerHTML==``) check(x,y-1);
+            if(document.getElementById(`pf_${x+1}${y-1}`).innerHTML==``) check(x+1,y-1);
+            if(document.getElementById(`pf_${x+1}${y}`).innerHTML==``) check(x+1,y);
+            if(document.getElementById(`pf_${x}${y+1}`).innerHTML==``) check(x,y+1);
+            if(document.getElementById(`pf_${x+1}${y+1}`).innerHTML==``) check(x+1,y+1);
+          }
+          else if((x==width-1)&&(y>0)&&(y<height-1)){
+            if(document.getElementById(`pf_${x}${y-1}`).innerHTML==``) check(x,y-1);
+            if(document.getElementById(`pf_${x-1}${y-1}`).innerHTML==``) check(x-1,y-1);
+            if(document.getElementById(`pf_${x-1}${y}`).innerHTML==``) check(x-1,y);
+            if(document.getElementById(`pf_${x}${y+1}`).innerHTML==``) check(x,y+1);
+            if(document.getElementById(`pf_${x-1}${y+1}`).innerHTML==``) check(x-1,y+1);
+          }
+          else if((x>0)&&(x<width-1)&&(y==0)){
+            if(document.getElementById(`pf_${x-1}${y}`).innerHTML==``) check(x-1,y);
+            if(document.getElementById(`pf_${x+1}${y}`).innerHTML==``) check(x+1,y);
+            if(document.getElementById(`pf_${x-1}${y+1}`).innerHTML==``) check(x-1,y+1);
+            if(document.getElementById(`pf_${x}${y+1}`).innerHTML==``) check(x,y+1);
+            if(document.getElementById(`pf_${x+1}${y+1}`).innerHTML==``) check(x+1,y+1);
+          }
+          else if((x>0)&&(x<width-1)&&(y==height-1)){
+            if(document.getElementById(`pf_${x-1}${y}`).innerHTML==``) check(x-1,y);
+            if(document.getElementById(`pf_${x+1}${y}`).innerHTML==``) check(x+1,y);
+            if(document.getElementById(`pf_${x-1}${y-1}`).innerHTML==``) check(x-1,y-1);
+            if(document.getElementById(`pf_${x}${y-1}`).innerHTML==``) check(x,y-1);
+            if(document.getElementById(`pf_${x+1}${y-1}`).innerHTML==``) check(x+1,y-1);
+          }
+          else{
+            if(document.getElementById(`pf_${x-1}${y-1}`).innerHTML==``) check(x-1,y-1);
+            if(document.getElementById(`pf_${x}${y-1}`).innerHTML==``) check(x,y-1);
+            if(document.getElementById(`pf_${x+1}${y-1}`).innerHTML==``) check(x+1,y-1);
+            if(document.getElementById(`pf_${x-1}${y}`).innerHTML==``) check(x-1,y);
+            if(document.getElementById(`pf_${x+1}${y}`).innerHTML==``) check(x+1,y);
+            if(document.getElementById(`pf_${x-1}${y+1}`).innerHTML==``) check(x-1,y+1);
+            if(document.getElementById(`pf_${x}${y+1}`).innerHTML==``) check(x,y+1);
+            if(document.getElementById(`pf_${x+1}${y+1}`).innerHTML==``) check(x+1,y+1);
+          }
+        }
+        else document.getElementById(`pf_${x}${y}`).innerHTML=result[y][x];
+      }
+    }
+  </script>
+</body>
+</html>
