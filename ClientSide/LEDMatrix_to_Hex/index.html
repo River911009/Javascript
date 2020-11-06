@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LEDMatrix_to_Hex</title>
+
+  <style>
+    body{
+      background-color: black;
+    }
+    td{
+      width: 40px;
+      height: 40px;
+      background-color: grey;
+      height:width;
+      text-align: center;
+    }
+    td:hover{
+      cursor: pointer;
+      background-color: rgb(175, 175, 175);
+    }
+    input{
+      width:10%
+    }
+  </style>
+</head>
+<body>
+  <table id="platform"></table>
+  
+  <p style="color: white;">
+    <input type="number" id="width" min="8" max="8" value="8" step="8"/>
+    X
+    <input type="number" id="height" min="8" max="8" value="8" step="8"/>
+  </p>
+  <input type="button" value="Set" onclick="redraw()"/>
+  <input type="submit" value="Submit" onclick="submit()"/>
+  <input type="reset" value="Reset" onclick="reset()"/>
+
+  <script>
+    var debug=true;
+
+    function init(width,height){
+      let map=new Array(height);
+      for(let x=0;x<height;x++){
+        map[x]=new Array(width);
+        for(let y=0;y<width;y++){
+          map[x][y]=0;
+        }
+      }
+      return(map);
+    }
+
+    function draw_platform(maps){
+      let temp='';
+      // drawing blocks
+      for(let y=0;y<maps.length;y++){
+        temp+=`<tr>`;
+          for(let x=0;x<maps[y].length;x++){
+            temp+=`<td id="pf_${x}${y}" onClick="toggle(${x},${y})">${ (debug==true)? maps[y][x]:'' }</td>`;
+          }
+        temp+=`</tr>`;
+      }
+      document.getElementById('platform').innerHTML=temp;
+    }
+
+    function redraw(){
+      draw_platform(init(document.getElementById('width').value,document.getElementById('height').value));
+    }
+
+    function toggle(x,y){
+      if(document.getElementById(`pf_${x}${y}`).innerHTML=='0'){
+        document.getElementById(`pf_${x}${y}`).innerHTML='1';
+        document.getElementById(`pf_${x}${y}`).style.backgroundColor='red';
+      }
+      else{
+        document.getElementById(`pf_${x}${y}`).innerHTML='0';
+        document.getElementById(`pf_${x}${y}`).style.backgroundColor='grey';
+      }
+    }
+
+    function submit(){
+      var x=document.getElementById('width').value;
+      var y=document.getElementById('height').value;
+      var tmp='uint8_t array[]={';
+
+      for(let index_y=1;index_y<=y;index_y++){
+        var value=0;
+        for(let index_x=1;index_x<=x;index_x++){
+          if(document.getElementById(`pf_${index_x-1}${index_y-1}`).innerHTML=='1'){
+            value+=Math.pow(2,x-index_x);
+          }
+        }
+        tmp+='0x';
+        if(value<16){
+          tmp+='0'+value.toString(16);
+        }
+        else{
+          tmp+=value.toString(16);
+        }
+        if(index_y!=y){
+          tmp+=',';
+        }
+      }
+      tmp+='};';
+      console.log(tmp);
+      
+      alert(tmp);
+    }
+
+    function reset(){
+      draw_platform(init(8,8));
+      document.getElementById('width').value=8;
+      document.getElementById('height').value=8;
+    }
+    
+    reset();
+  </script>
+</body>
+</html>
